@@ -3,22 +3,127 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yveogo &mdash; Verify, then go</title>
+<title>Yveogo — Verify, then go</title>
+<meta name="description" content="Yveogo Trust Shield scores job listings so you know what you're walking into. Verify, then go.">
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; display: flex;
-         min-height: 100vh; margin: 0; align-items: center; justify-content: center;
-         background: #0b0e14; color: #e8ecf1; text-align: center; }
-  main { padding: 2rem; }
-  h1 { font-size: 3rem; letter-spacing: 0.35em; margin: 0 0 0.5rem; }
-  p.tag { color: #8b95a5; font-size: 1.2rem; margin: 0 0 2rem; }
-  p.soon { color: #5b6472; font-size: 0.95rem; }
+  :root { --bg: #0b0e14; --fg: #e8ecf1; --muted: #8b95a5; --dim: #5b6472;
+          --green: #35c26e; --amber: #e0a83c; --red: #e05c5c; --line: #1c2230; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0;
+         background: var(--bg); color: var(--fg); line-height: 1.6; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 1.5rem; }
+  header { padding: 1.2rem 0; border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-weight: 800; letter-spacing: 0.3em; font-size: 1.1rem; }
+  nav a { color: var(--muted); text-decoration: none; margin-left: 1.4rem; font-size: 0.95rem; }
+  nav a:hover { color: var(--fg); }
+  .hero { text-align: center; padding: 5rem 0 3.5rem; }
+  .hero h1 { font-size: 3.2rem; letter-spacing: 0.25em; margin: 0 0 0.6rem; }
+  .hero .tag { color: var(--muted); font-size: 1.35rem; margin: 0 0 1.6rem; }
+  .hero p.lead { color: var(--muted); max-width: 620px; margin: 0 auto; font-size: 1.05rem; }
+  section { padding: 3rem 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.6rem; margin: 0 0 1.2rem; }
+  .bands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.4rem; }
+  .band { border: 1px solid var(--line); border-radius: 10px; padding: 1.2rem; }
+  .band .score { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .band h3 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+  .band p { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .green .score { color: var(--green); } .amber .score { color: var(--amber); } .red .score { color: var(--red); }
+  ul.clean { list-style: none; padding: 0; margin: 0; }
+  ul.clean li { padding: 0.55rem 0; border-bottom: 1px dashed var(--line); color: var(--muted); }
+  ul.clean li strong { color: var(--fg); font-weight: 600; }
+  .note { background: #10151f; border: 1px solid var(--line); border-radius: 10px;
+          padding: 1.2rem 1.4rem; color: var(--muted); font-size: 0.95rem; margin-top: 1.4rem; }
+  footer { border-top: 1px solid var(--line); padding: 2rem 0 3rem; color: var(--dim);
+           font-size: 0.85rem; text-align: center; }
+  a.mail { color: var(--fg); }
+  @media (max-width: 640px) { .bands { grid-template-columns: 1fr; } .hero h1 { font-size: 2.2rem; } }
 </style>
 </head>
 <body>
-<main>
-  <h1>YVEOGO</h1>
-  <p class="tag">Verify, then go.</p>
-  <p class="soon">Something new is on the way.</p>
-</main>
+
+<header>
+  <div class="wrap">
+    <div class="logo">YVEOGO</div>
+    <nav>
+      <a href="#shield">Trust Shield</a>
+      <a href="#how">How it works</a>
+      <a href="#employers">Employers</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>YVEOGO</h1>
+    <p class="tag">Verify, then go.</p>
+    <p class="lead">Job listings are full of promises. Yveogo checks what's behind them —
+    so you walk into interviews with your eyes open, not your fingers crossed.</p>
+  </div>
+
+  <section id="shield">
+    <h2>Trust Shield</h2>
+    <p style="color:var(--muted)">Every listing we review gets a trust score from 0 to 100,
+    built from verifiable signals — not vibes.</p>
+    <div class="bands">
+      <div class="band green">
+        <div class="score">80+</div>
+        <h3>Trustworthy</h3>
+        <p>Checks out. Verified signals line up; proceed with normal caution.</p>
+      </div>
+      <div class="band amber">
+        <div class="score">50–79</div>
+        <h3>Caution</h3>
+        <p>Mixed signals. Worth a closer look before you invest your time.</p>
+      </div>
+      <div class="band red">
+        <div class="score">0–49</div>
+        <h3>Stay away</h3>
+        <p>High risk. Verifiable red flags outweigh anything the listing promises.</p>
+      </div>
+    </div>
+    <div class="note">We describe risk with facts you can check — never with labels you can't.
+    A low score means "here's what we found," not a verdict on anyone's character.</div>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <ul class="clean">
+      <li><strong>Verifiable signals.</strong> Domain age, posting patterns, contact consistency,
+      and other checkable facts — each one you could confirm yourself.</li>
+      <li><strong>Rule engine first.</strong> Transparent rules make the call, so every score can be explained.</li>
+      <li><strong>Machine learning, second opinion.</strong> Models advise; they don't overrule.
+      No black-box verdicts.</li>
+      <li><strong>Always improving.</strong> The system re-tests itself against known-good and
+      known-bad listings, and flags when its own signals drift.</li>
+    </ul>
+  </section>
+
+  <section id="employers">
+    <h2>For employers</h2>
+    <p style="color:var(--muted)">Think a score got it wrong? You get a fair hearing.
+    Disputes are handled through a dedicated review channel — starting with email,
+    moving to an on-site review form. We correct mistakes and show our work.</p>
+    <div class="note">No listing is ever called a "scam" here. We publish risk levels and the
+    verifiable facts behind them, and every employer can challenge the record.</div>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p style="color:var(--muted)">Questions, corrections, or partnership ideas:</p>
+    <p><a class="mail" href="mailto:hello@yveogo.com">hello@yveogo.com</a></p>
+    
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Yveogo — Verify, then go.</p>
+    <p>We sell trust, and we grow with trust. No bots, no fake numbers, no shortcuts.</p>
+    <p>&copy; 2026 Yveogo. All rights reserved.</p>
+  </div>
+</footer>
+
 </body>
 </html>
