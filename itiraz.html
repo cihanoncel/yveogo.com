@@ -1,0 +1,141 @@
+<!-- Yveogo İşveren İtiraz Formu — v0.3 Türkçe (canlıya hazır)
+     "5 iş günü" taahhüdü kullanıcı onayıyla eklendi (5 Eki 2026).
+     Turnstile site key deploy sırasında doldurulacak (data-sitekey).
+     NOT: Worker JS'deki hata mesajları İngilizce kalır (API yanıtları tek dil).
+     Bu form Türkçe UI sunar; API'ye aynı alan adlarıyla gönderir. -->
+
+<section id="dispute">
+  <h2>İşveren İtiraz Formu</h2>
+  <p style="color:var(--muted)">Başvurunuz bir onay numarasıyla kaydedilir
+  ve ekibimiz tarafından <strong>5 iş günü</strong> içinde incelenir.</p>
+
+  <form id="dispute-form" novalidate>
+    <label>Şirketin yasal unvanı *
+      <input type="text" name="company_name" required maxlength="200" autocomplete="organization">
+    </label>
+    <label>Şirket domaini *
+      <input type="text" name="company_domain" required maxlength="100"
+             placeholder="ornek.com" autocomplete="off" inputmode="url">
+    </label>
+    <label>Yetkili kişi adı *
+      <input type="text" name="contact_name" required maxlength="100" autocomplete="name">
+    </label>
+    <label>Kurumsal e-posta *
+      <input type="email" name="contact_email" required maxlength="100" autocomplete="email">
+      <small>Şirket domaininizle eşleşmelidir (ücretsiz sağlayıcılar kabul edilmez)</small>
+    </label>
+    <label>İlan başlığı veya URL'si *
+      <input type="text" name="posting_ref" required maxlength="500">
+    </label>
+    <label>İtiraz nedeni *
+      <select name="dispute_type" required>
+        <option value="">Seçin…</option>
+        <option value="yanlis_sirket">Yanlış şirket eşleşmesi</option>
+        <option value="guncel_bilgi">Güncel olmayan bilgi</option>
+        <option value="kopya_hatasi">Kopya tespit hatası</option>
+        <option value="skor_itirazi">Risk skoru itirazı</option>
+        <option value="diger">Diğer</option>
+      </select>
+    </label>
+    <label>İtiraz edilen skor (opsiyonel, 0–100)
+      <input type="number" name="disputed_score" min="0" max="100" placeholder="örn. 42">
+    </label>
+    <label>Açıklama *
+      <textarea name="description" required maxlength="2000" rows="5"
+                placeholder="Somut bilgilerle açıklayın…"></textarea>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="truth_confirm" required>
+      Verdiğim bilgilerin doğru olduğunu onaylıyorum. *
+    </label>
+    <label class="check">
+      <input type="checkbox" name="contact_confirm" required>
+      İnceleme süresince e-posta ile iletişime geçilmesini kabul ediyorum. *
+    </label>
+
+    <!-- Cloudflare Turnstile (bot koruması) -->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAFO4dLkbna3nGeqq"></div>
+
+    <button type="submit" id="dispute-submit">İtirazı Gönder</button>
+    <p id="dispute-msg" role="status" aria-live="polite"></p>
+    <p><small>Gönderim sonrası bir <strong>onay numarası</strong> alacaksınız.
+    Her itiraz <strong>5 iş günü</strong> içinde incelenir.
+    Bu form birincil inceleme kanalıdır; e-posta ikincildir:
+    <a class="mail" href="mailto:hello@yveogo.com">hello@yveogo.com</a></small></p>
+  </form>
+</section>
+
+<script>
+(function () {
+  var form = document.getElementById('dispute-form');
+  var msg = document.getElementById('dispute-msg');
+  var btn = document.getElementById('dispute-submit');
+  if (!form) return;
+
+  function show(text, isError) {
+    msg.textContent = text;
+    msg.style.color = isError ? 'var(--red, #e05c5c)' : 'var(--green, #35c26e)';
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    btn.disabled = true;
+    show('Gönderiliyor…', false);
+
+    try {
+      var fd = new FormData(form);
+      var tsToken = document.querySelector('[name="cf-turnstile-response"]');
+      var payload = {};
+      fd.forEach(function (v, k) { payload[k] = v; });
+      if (tsToken) payload.turnstile_token = tsToken.value;
+      payload.truth_confirm = form.truth_confirm.checked;
+      payload.contact_confirm = form.contact_confirm.checked;
+      if (payload.disputed_score === '') delete payload.disputed_score;
+
+      var res = await fetch('/api/dispute', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json().catch(function () { return {}; });
+
+      if (res.ok && data.ok) {
+        show('Kaydedildi. Onay numaranız: ' + data.id + ' — lütfen saklayın.', false);
+        form.reset();
+        if (window.turnstile) turnstile.reset();
+      } else {
+        show(data.error || ('Gönderim başarısız (HTTP ' + res.status + ').'), true);
+        if (window.turnstile) turnstile.reset();
+      }
+    } catch (err) {
+      show('Bağlantı hatası. Lütfen tekrar deneyin.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
+  #dispute-form label { display: block; margin: 0.9rem 0; color: var(--fg); }
+  #dispute-form input[type="text"],
+  #dispute-form input[type="email"],
+  #dispute-form input[type="number"],
+  #dispute-form select,
+  #dispute-form textarea {
+    display: block; width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.7rem;
+    background: #10151f; border: 1px solid var(--line); border-radius: 8px;
+    color: var(--fg); font: inherit;
+  }
+  #dispute-form small { color: var(--muted); font-size: 0.85rem; }
+  #dispute-form .check { display: flex; gap: 0.6rem; align-items: flex-start; }
+  #dispute-form .check input { margin-top: 0.3rem; }
+  #dispute-form button {
+    margin-top: 1rem; padding: 0.7rem 1.6rem; border: 0; border-radius: 8px;
+    background: #35c26e; color: #06110a; font-weight: 700; font-size: 1rem; cursor: pointer;
+  }
+  #dispute-form button:disabled { opacity: 0.55; cursor: default; }
+  #dispute-msg { min-height: 1.6em; font-weight: 600; }
+  #dispute-form .cf-turnstile { margin: 1rem 0; }
+</style>
