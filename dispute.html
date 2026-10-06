@@ -1,0 +1,141 @@
+<!-- Yveogo İşveren İtiraz Formu — v0.3 (canlıya hazır)
+     "5 iş günü" taahhüdü kullanıcı onayıyla eklendi (5 Eki 2026).
+     Turnstile site key deploy sırasında doldurulacak (data-sitekey). -->
+
+<section id="dispute">
+  <h2>Employer Dispute Form</h2>
+  <p style="color:var(--muted)">Your submission is logged with a confirmation ID
+  and reviewed by our team within <strong>5 business days</strong>.</p>
+
+  <form id="dispute-form" novalidate>
+    <label>Company legal name *
+      <input type="text" name="company_name" required maxlength="200" autocomplete="organization">
+    </label>
+    <label>Company domain *
+      <input type="text" name="company_domain" required maxlength="100"
+             placeholder="example.com" autocomplete="off" inputmode="url">
+    </label>
+    <label>Authorized contact name *
+      <input type="text" name="contact_name" required maxlength="100" autocomplete="name">
+    </label>
+    <label>Corporate email *
+      <input type="email" name="contact_email" required maxlength="100" autocomplete="email">
+      <small>Must match your company domain (free providers not accepted)</small>
+    </label>
+    <label>Posting title or URL *
+      <input type="text" name="posting_ref" required maxlength="500">
+    </label>
+    <label>Reason *
+      <select name="dispute_type" required>
+        <option value="">Select…</option>
+        <option value="yanlis_sirket">Wrong company match</option>
+        <option value="guncel_bilgi">Outdated information</option>
+        <option value="kopya_hatasi">Duplicate detection error</option>
+        <option value="skor_itirazi">Risk score dispute</option>
+        <option value="diger">Other</option>
+      </select>
+    </label>
+    <label>Disputed score (optional, 0–100)
+      <input type="number" name="disputed_score" min="0" max="100" placeholder="e.g. 42">
+    </label>
+    <label>Explanation *
+      <textarea name="description" required maxlength="2000" rows="5"
+                placeholder="Explain with facts…"></textarea>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="truth_confirm" required>
+      I confirm the information provided is accurate. *
+    </label>
+    <label class="check">
+      <input type="checkbox" name="contact_confirm" required>
+      I accept being contacted by email during the review. *
+    </label>
+
+    <!-- Cloudflare Turnstile (bot koruması) -->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAFO4dLkbna3nGeqq"></div>
+
+    <button type="submit" id="dispute-submit">Submit Dispute</button>
+    <p id="dispute-msg" role="status" aria-live="polite"></p>
+    <p><small>After submitting you will receive a <strong>confirmation ID</strong>.
+    We review every dispute within <strong>5 business days</strong>.
+    This form is the primary review channel; email is secondary:
+    <a class="mail" href="mailto:hello@yveogo.com">hello@yveogo.com</a></small></p>
+  </form>
+</section>
+
+<script>
+(function () {
+  var form = document.getElementById('dispute-form');
+  var msg = document.getElementById('dispute-msg');
+  var btn = document.getElementById('dispute-submit');
+  if (!form) return;
+
+  function show(text, isError) {
+    msg.textContent = text;
+    msg.style.color = isError ? 'var(--red, #e05c5c)' : 'var(--green, #35c26e)';
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    btn.disabled = true;
+    show('Submitting…', false);
+
+    try {
+      var fd = new FormData(form);
+      // Turnstile token'ı ekle (widget varsa)
+      var tsToken = document.querySelector('[name="cf-turnstile-response"]');
+      var payload = {};
+      fd.forEach(function (v, k) { payload[k] = v; });
+      if (tsToken) payload.turnstile_token = tsToken.value;
+      // Checkbox'ları boolean'a çevir
+      payload.truth_confirm = form.truth_confirm.checked;
+      payload.contact_confirm = form.contact_confirm.checked;
+      if (payload.disputed_score === '') delete payload.disputed_score;
+
+      var res = await fetch('/api/dispute', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json().catch(function () { return {}; });
+
+      if (res.ok && data.ok) {
+        show('Recorded. Your confirmation ID: ' + data.id + ' — please keep it.', false);
+        form.reset();
+        if (window.turnstile) turnstile.reset();
+      } else {
+        show(data.error || ('Submission failed (HTTP ' + res.status + ').'), true);
+        if (window.turnstile) turnstile.reset();
+      }
+    } catch (err) {
+      show('Network error. Please try again.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
+  #dispute-form label { display: block; margin: 0.9rem 0; color: var(--fg); }
+  #dispute-form input[type="text"],
+  #dispute-form input[type="email"],
+  #dispute-form input[type="number"],
+  #dispute-form select,
+  #dispute-form textarea {
+    display: block; width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.7rem;
+    background: #10151f; border: 1px solid var(--line); border-radius: 8px;
+    color: var(--fg); font: inherit;
+  }
+  #dispute-form small { color: var(--muted); font-size: 0.85rem; }
+  #dispute-form .check { display: flex; gap: 0.6rem; align-items: flex-start; }
+  #dispute-form .check input { margin-top: 0.3rem; }
+  #dispute-form button {
+    margin-top: 1rem; padding: 0.7rem 1.6rem; border: 0; border-radius: 8px;
+    background: #35c26e; color: #06110a; font-weight: 700; font-size: 1rem; cursor: pointer;
+  }
+  #dispute-form button:disabled { opacity: 0.55; cursor: default; }
+  #dispute-msg { min-height: 1.6em; font-weight: 600; }
+  #dispute-form .cf-turnstile { margin: 1rem 0; }
+</style>
